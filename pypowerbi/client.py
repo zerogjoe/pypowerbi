@@ -7,6 +7,7 @@ from .reports import Reports
 from .datasets import Datasets
 from .imports import Imports
 from .groups import Groups
+from .gateways import Gateways
 
 
 class PowerBIClient:
@@ -23,6 +24,7 @@ class PowerBIClient:
         self.reports = Reports(self)
         self.imports = Imports(self)
         self.groups = Groups(self)
+        self.gateways = Gateways(self)
 
     @property
     def auth_header(self):
