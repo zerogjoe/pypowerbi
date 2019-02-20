@@ -21,3 +21,20 @@ class GatewayTests(TestCase):
                         '}'
 
         self.assertEqual(gateway_json, expected_json)
+
+
+class DatasourceTests(TestCase):
+
+    def test_datasource_json(self):
+
+        datasource = Datasource(name=f'testDatasource')
+        self.assertIsNotNone(datasource)
+
+        datasource_json = json.dumps(datasource, cls=DatasourceEncoder)
+        self.assertIsNotNone(datasource_json)
+
+        expected_json = '{' \
+                          '"name": "testDatasource", ' \
+                        '}'
+
+        self.assertEqual(datasource_json, expected_json)
