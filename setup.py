@@ -12,5 +12,6 @@ setup(name='pypowerbi',
             'requests',
             'adal',
             'future-fstrings',
+            'pycryptodome',
       ],
       zip_safe=False)
