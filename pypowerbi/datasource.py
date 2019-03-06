@@ -34,23 +34,16 @@ class Datasource:
     def from_dict(cls, dictionary):
         """
         Creates a datasource from a dictionary,
-        key values for 'id' and 'name' required
+        key value for 'name' required
         :param dictionary: The dictionary to create the datasource from
         :return: A datasource created from the given dictionary
         """
-        # id is required
         if Datasource.id_key in dictionary:
             datasource_id = str(dictionary[Datasource.id_key])
-            # id cannot be whitespace
-            if datasource_id.isspace():
-                raise RuntimeError('Dataset dict has empty id key value')
         elif Datasource.id_alternative_key in dictionary:
             datasource_id = str(dictionary[Datasource.id_alternative_key])
-            # id cannot be whitespace
-            if datasource_id.isspace():
-                raise RuntimeError('Dataset dict has empty id key value')
         else:
-            raise RuntimeError('Dataset dict has no id key')
+            datasource_id = None
 
         # name is required
         if Datasource.name_key in dictionary:
