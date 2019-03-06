@@ -397,7 +397,6 @@ class Datasets:
                 in update_instructions
             ]
         }
-        print(json_dict)
 
         # get the response
         response = requests.post(url, headers=headers, json=json_dict)
