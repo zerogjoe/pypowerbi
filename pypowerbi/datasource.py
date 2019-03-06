@@ -68,7 +68,12 @@ class Datasource:
 
         # connection_details is optional
         if Datasource.connection_details_key in dictionary:
-            connection_details = dictionary[Datasource.connection_details_key]
+            if type(dictionary[Datasource.connection_details_key]) is dict:
+                connection_details = ConnectionDetails.from_dict(
+                    dictionary[Datasource.connection_details_key])
+            else:
+                connection_details = ConnectionDetails.from_dict(
+                    json.loads(dictionary[Datasource.connection_details_key]))
         else:
             connection_details = None
 
@@ -100,7 +105,7 @@ class DatasourceEncoder(json.JSONEncoder):
         return {
             Datasource.datasource_type_key: o.datasource_type,
             Datasource.connection_details_key: json.dumps(
-                o.connection_details,
+                ConnectionDetailsEncoder().default(o.connection_details),
                 separators=(',', ':')),
             Datasource.name_key: o.name,
             Datasource.credential_details_key: (
@@ -110,7 +115,8 @@ class DatasourceEncoder(json.JSONEncoder):
     def update_datasources(self, o):
         return {
             Datasource.datasource_type_key: o.datasource_type,
-            Datasource.connection_details_key: o.connection_details,
+            Datasource.connection_details_key: (
+                ConnectionDetailsEncoder().default(o.connection_details)),
             Datasource.name_key: o.name
         }
 
@@ -205,6 +211,37 @@ class ConnectionDetails:
         self.database = database
         self.server = server
         self.url = url
+
+    @classmethod
+    def from_dict(cls, dictionary):
+        """
+        Creates a ConnectionDetails object from a dictionary
+        :param dictionary: The dictionary to create the dataset from
+        :return: A dataset created from the given dictionary
+        """
+        # database is optional
+        if ConnectionDetails.database_key in dictionary:
+            database = str(dictionary[ConnectionDetails.database_key])
+        else:
+            database = None
+
+        # server is optional
+        if ConnectionDetails.server_key in dictionary:
+            server = str(dictionary[ConnectionDetails.server_key])
+        else:
+            server = None
+
+        # url is optional
+        if ConnectionDetails.url_key in dictionary:
+            url = str(dictionary[ConnectionDetails.url_key])
+        else:
+            url = None
+
+        return ConnectionDetails(
+            database=database,
+            server=server,
+            url=url
+        )
 
 
 class ConnectionDetailsEncoder(json.JSONEncoder):
