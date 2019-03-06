@@ -2,6 +2,7 @@
 import json
 
 from .encrypt import PublicKey
+from .datasource import CredentialDetails
 
 
 class Gateway:
