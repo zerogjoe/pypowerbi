@@ -4,6 +4,8 @@ import json
 
 from requests.exceptions import HTTPError
 from .dataset import *
+from .datasource import *
+from .gateways import Gateways
 
 
 class Datasets:
@@ -14,9 +16,15 @@ class Datasets:
     rows_snippet = 'rows'
     parameters_snippet = 'parameters'
     refreshes_snippet = 'refreshes'
+    datasources_snippet = 'datasources'
+    update_datasources_snippet = 'Default.UpdateDatasources'
 
     # json keys
     get_datasets_value_key = 'value'
+    get_datasources_value_key = 'value'
+    update_details_key = 'updateDetails'
+    datasource_selector_key = 'datasourceSelector'
+    connection_details_key = 'connectionDetails'
 
     def __init__(self, client):
         self.client = client
@@ -310,6 +318,93 @@ class Datasets:
         # 200 is the only successful code, raise an exception on any other response code
         if response.status_code != 202:
             raise HTTPError(response, f'Refresh dataset request returned http error: {response.json()}')
+
+    def get_datasources(self, dataset_id, group_id=None):
+        """
+        Fetches all datasources for a dataset
+        https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/getdatasources
+        :param dataset_id: The dataset id to get datasources from
+        :param group_id: The optional group id where the dataset is published
+        :return: The list of the datasources found
+        """
+        # group_id can be none, account for it
+        if group_id is None:
+            groups_part = '/'
+        else:
+            groups_part = f'/{self.groups_snippet}/{group_id}/'
+
+        # form the url
+        url = (
+            f'{self.base_url}{groups_part}/'
+            f'{self.datasets_snippet}/'
+            f'{dataset_id}/'
+            f'{self.datasources_snippet}'
+        )
+        # form the headers
+        headers = self.client.auth_header
+
+        # get the response
+        response = requests.get(url, headers=headers)
+
+        # 200 is the only successful code, raise an exception on any other response code
+        if response.status_code != 200:
+            raise HTTPError(response, f'Get Datasources request returned http error: {response.json()}')
+
+        return Gateways.datasources_from_get_datasources_response(response)
+
+    def update_datasources(self, update_instructions, dataset_id, group_id=None):
+        """
+        Fetches all datasources for a dataset
+        https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/updatedatasources
+        https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/updatedatasourcesingroup
+        :param update_instructions: List of (Datasource, ConnectionDetails)
+                                    tuples where Datasource is a selector and
+                                    ConnectionDetails contains the new
+                                    connection details
+        :param dataset_id: The dataset id to update datasources in
+        :param group_id: The optional group id where the dataset is published
+        """
+        # group_id can be none, account for it
+        if group_id is None:
+            groups_part = '/'
+        else:
+            groups_part = f'/{self.groups_snippet}/{group_id}/'
+
+        # form the url
+        url = (
+            f'{self.base_url}{groups_part}/'
+            f'{self.datasets_snippet}/'
+            f'{dataset_id}/'
+            f'{self.update_datasources_snippet}'
+        )
+        # form the headers
+        headers = self.client.auth_header
+
+        datasource_encoder = DatasourceEncoder()
+        connection_details_encoder = ConnectionDetailsEncoder()
+
+        json_dict = {
+            self.update_details_key: [
+                {
+                    self.datasource_selector_key: (
+                        datasource_encoder.update_datasources(
+                            datasource_selector)),
+                    self.connection_details_key: (
+                        connection_details_encoder.default(
+                            connection_details))
+                }
+                for datasource_selector, connection_details
+                in update_instructions
+            ]
+        }
+        print(json_dict)
+
+        # get the response
+        response = requests.post(url, headers=headers, json=json_dict)
+
+        # 200 is the only successful code, raise an exception on any other response code
+        if response.status_code != 200:
+            raise HTTPError(response, f'Update Datasources request returned http error: {response.json()}')
 
     @classmethod
     def datasets_from_get_datasets_response(cls, response):

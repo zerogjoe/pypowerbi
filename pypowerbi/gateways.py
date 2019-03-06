@@ -4,6 +4,7 @@ import json
 
 from requests.exceptions import HTTPError
 from .gateway import *
+from .datasource import *
 
 
 class Gateways:
@@ -97,7 +98,7 @@ class Gateways:
         # form the headers
         headers = self.client.auth_header
         # form the json dict
-        json_dict = GatewayDatasourceEncoder().default(datasource)
+        json_dict = DatasourceEncoder().default(datasource)
 
         # get the response
         response = requests.post(url, headers=headers, json=json_dict)
@@ -169,6 +170,6 @@ class Gateways:
         response_dict = json.loads(response.text)
         # go through entries returned from API
         return [
-            GatewayDatasource.from_dict(entry)
+            Datasource.from_dict(entry)
             for entry in response_dict[cls.get_datasources_value_key]
         ]
